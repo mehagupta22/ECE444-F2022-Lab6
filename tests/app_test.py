@@ -42,7 +42,7 @@ def test_index(client):
 
 def test_database(client):
     """initial test. ensure that the database exists"""
-    tester = Path("project/test.db").is_file()
+    tester = Path("test.db").is_file()
     assert tester
 
 
@@ -81,3 +81,8 @@ def test_delete_message(client):
     rv = client.get('/delete/1')
     data = json.loads(rv.data)
     assert data["status"] == 1
+
+def test_search(client):
+    """Test search"""
+    rv = client.get("/search/?query=Test")
+    assert rv.status_code == 200
