@@ -7,6 +7,8 @@ from flask_sqlalchemy import SQLAlchemy
 
 from functools import wraps
 
+import os
+
 basedir = Path(__file__).resolve().parent
 
 # configuration
@@ -14,7 +16,12 @@ DATABASE = "flaskr.db"
 USERNAME = "admin"
 PASSWORD = "admin"
 SECRET_KEY = "change_me"
-SQLALCHEMY_DATABASE_URI = f'sqlite:///{Path(basedir).joinpath(DATABASE)}'
+url = os.getenv('DATABASE_URL', f'sqlite:///{Path(basedir).joinpath(DATABASE)}')
+
+if url.startswith("postgres://"):
+    url = url.replace("postgres://", "postgresql://", 1)
+
+SQLALCHEMY_DATABASE_URI = url
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
@@ -69,20 +76,6 @@ def logout():
     session.pop('logged_in', None)
     flash('You were logged out')
     return redirect(url_for('index'))
-
-
-@app.route('/delete/<int:post_id>', methods=['GET'])
-def delete_entry(post_id):
-    """Deletes post from database."""
-    result = {'status': 0, 'message': 'Error'}
-    try:
-        db.session.query(models.Post).filter_by(id=post_id).delete()
-        db.session.commit()
-        result = {'status': 1, 'message': "Post Deleted"}
-        flash('The entry was deleted.')
-    except Exception as e:
-        result = {'status': 0, 'message': repr(e)}
-    return jsonify(result)
 
 @app.route('/search/', methods=['GET'])
 def search():
